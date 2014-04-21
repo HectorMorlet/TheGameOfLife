@@ -8,6 +8,6 @@
 
 
 typedef struct {
-   int changeNextGeneration;
+   int lifeStatNextGeneration;
    int lifeStatus;
 } cell;
