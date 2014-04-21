@@ -227,13 +227,19 @@ cell *createMap(cell *map, int width, int height, int *input) {
 // .oO0-------------------------------------------------------0Oo. //
 
 cell *updateMap(cell *map, int width, int height) {
+   // Looping over each cell
    int i = 0;
    while (i < (width * height)) {
+      // Getting the cell's number of neighbours and changing its status
       int neighbours = cellNeighbours(map, i, width);
       map = updateCell(map, i, neighbours);
       i++;
    }
-   
+
+   // Setting all the cells' lifestatuses to what they should be
+   // This is to avoid the error of changing one status in the function
+   // above, which will affect the status of other cells, when they
+   // should all use the same data to change.
    i = 0;
    while (i < (height * width)) {
       map[i].lifeStatus = map[i].lifeStatNextGeneration;
@@ -272,18 +278,18 @@ int cellNeighbours(cell *map, int cellPosition, int width) {
 
 
 cell *updateCell(cell *map, int cellPosition, int neighbours) {
+   // Determining if the cell is alive or dead
+   // Different rules apply to each (see plan.txt/go to wikipedia)
    if (map[cellPosition].lifeStatus == TRUE) {
-      if (neighbours == FIRST_NUMBER_OF_SURROUNDING_LIVE_CELLS || 
-         neighbours == SECOND_NUMBER_OF_SURROUNDING_LIVE_CELLS) {
-         map[cellPosition].lifeStatNextGeneration = TRUE;
-      } else {
+      // If the cell doesn't have 2 or 3 neighbours, it dies
+      if (neighbours != FIRST_NUMBER_OF_SURROUNDING_LIVE_CELLS && 
+         neighbours != SECOND_NUMBER_OF_SURROUNDING_LIVE_CELLS) {
          map[cellPosition].lifeStatNextGeneration = FALSE;
       }
    } else {
+      // If the cell has exactly 3 live neighbours, it comes alive
       if (neighbours == NUMBER_OF_CELLS_FOR_DEAD_TO_LIVING) {
          map[cellPosition].lifeStatNextGeneration = TRUE;
-      } else {
-         map[cellPosition].lifeStatNextGeneration = FALSE;
       }
    }
 
