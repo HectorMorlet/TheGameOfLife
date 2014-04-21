@@ -55,3 +55,5 @@ Plan:
    - Make a map
    - Render the map
    - Make a predetermined set of alive cells iterate over generations
+   - Get inputted coordinates
+   - Set the inputted coordinates to alive on the map

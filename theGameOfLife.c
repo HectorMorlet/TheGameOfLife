@@ -22,6 +22,11 @@
 #define FALSE 0
 
 #define SIZE_OF_A_CELL 10
+#define SIZE_OF_AN_INT 4
+#define MAX_INPUT_COORDS 2000
+#define BUFFER 1
+#define MAX_COORD_VALUE 1000000000
+#define NUMBERS_PER_COORD 2
 
 #define LIVE_CELL_CHAR '#'
 #define DEAD_CELL_CHAR ' '
@@ -37,9 +42,11 @@
 #define NUMBER_OF_CELLS_FOR_DEAD_TO_LIVING 3
 
 
+int *getInput();
+
 void iterateGeneration(cell *map, int width, int height);
 
-cell *createMap(cell *map, int width, int height);
+cell *createMap(cell *map, int width, int height, int *input);
 void renderMap(cell *map, int width, int height);
 
 cell *updateMap(cell *map, int width, int height);
@@ -54,6 +61,8 @@ void initCurses();
 // .oO0-------------------------------------------------------0Oo. //
 
 int main(int argc, char *argv[]) {
+   int *input = getInput();
+
    initCurses();
 
    // Finding terminal dimentions
@@ -63,14 +72,69 @@ int main(int argc, char *argv[]) {
 
    // Creating map
    cell *map = malloc(width * height * SIZE_OF_A_CELL);
-   map = createMap(map, width, height);
+   map = createMap(map, width, height, input);
 
-   // Rendering
+   // Iterating over the generations and rendering
    iterateGeneration(map, width, height);
 
    endwin();
 
    return EXIT_SUCCESS;
+}
+
+
+// .oO0-------------------------------------------------------0Oo. //
+// ---------------- Iterating Through Generations ---------------- //
+// .oO0-------------------------------------------------------0Oo. //
+
+int *getInput() {
+   int *coords = NULL;
+
+   // Determining whether to use default or input
+   char choiceChar = 'n';
+   printf("Would you like to enter your own coordinates? (y/n): ");
+   scanf(" %c", &choiceChar);
+   if (choiceChar == 'y') {
+      // Allocating memory
+      coords = malloc(MAX_INPUT_COORDS * SIZE_OF_AN_INT + BUFFER);
+
+      // Instructions
+      printf("Enter an x and y to make a point at their coordinates. ");
+      printf("The maximum amount of input coordinate sets is %d.\n", 
+         MAX_INPUT_COORDS / NUMBERS_PER_COORD);
+
+      // Getting the input
+      int coord = 0;
+      char exitChar = 'y';
+      int i = 0;
+      while (exitChar == 'y' && i < MAX_INPUT_COORDS) {
+         // Getting and setting x
+         printf("Enter x: ");
+         scanf("%d", &coord);
+         assert(coord < MAX_COORD_VALUE);
+         coords[i] = coord;
+
+         // Getting and setting y
+         printf("Enter y: ");
+         scanf("%d", &coord);
+         assert(coord < MAX_COORD_VALUE);
+         coords[i + 1] = coord;
+
+         // Determining whether to exit or not
+         printf("Do you want to enter another point? (y/n): ");
+         scanf(" %c", &exitChar);
+         i += NUMBERS_PER_COORD;
+      }
+
+      // Setting terminating value
+      coords[i] = MAX_COORD_VALUE;
+   } else {
+      // Making no-go coord array
+      coords = malloc(SIZE_OF_AN_INT);
+      coords[0] = MAX_COORD_VALUE;
+   }
+
+   return coords;
 }
 
 
@@ -101,7 +165,10 @@ void renderMap(cell *map, int width, int height) {
    while (y < height) {
       int x = 0;
       while (x < width) {
+         // Moving the curser
          move(y, x);
+
+         // Printing living cell if it is living, dead one if otherwise
          if (map[y * width + x].lifeStatus) {
             addch(LIVE_CELL_CHAR);
          } else {
@@ -111,46 +178,42 @@ void renderMap(cell *map, int width, int height) {
       }
       y++;
    }
+
    refresh();
 }
 
 
-cell *createMap(cell *map, int width, int height) {
+cell *createMap(cell *map, int width, int height, int *input) {
    int i = 0;
    while (i < height * width) {
+      // Setting the default status of the cell
       map[i].lifeStatNextGeneration = FALSE;
       map[i].lifeStatus = FALSE;
-      if (i == 23 || 
-         i == 18 || 
-         i == 20 || 
-         i == 21 || 
-         i == 99 || 
-         i == 100 ||
-         i == 101 ||
-         i == 180 ||
-         i == 181 ||
-         i == 105 ||
-         i == 129 ||
-         i == 185 ||
-         i == 123 ||
-         i == 483 ||
-         i == 970 ||
-         i == 264 ||
-         i == 957 ||
-         i == 274 ||
-         i == 265 ||
-         i == 287 ||
-         i == 241 ||
-         i == 207 ||
-         i == 396 ||
-         i == 69 ||
-         i == 185 ||
-         i == 106 ||
-         i == 16 ||
-         i == 96 ||
-         i == 98 ||
-         i == 97) {
+
+      // The following condition (the second part of it) is completely
+      // derogatory (the numbers don't mean anything).
+      // Fiddle around with it for pretty patterns!
+      if (input[0] == MAX_COORD_VALUE && i*3725922/3%5 == 0) {
          map[i].lifeStatus = TRUE;
+      } else {
+         // Getting the x and y values of the cell
+         int cellX = i % width;
+         int cellY = i / width;
+
+         // Looping over each coord
+         int inputX = 0;
+         int j = 0;
+         while (inputX != MAX_COORD_VALUE) {
+            inputX = input[j];
+
+            // Comparing to the cell's x and y
+            if (input[j] == cellX && input[j + 1] == cellY) {
+               // If they are the same, the cell is set to alive
+               map[i].lifeStatus = TRUE;
+            }
+
+            j += NUMBERS_PER_COORD;
+         }
       }
       i++;
    }
@@ -170,6 +233,7 @@ cell *updateMap(cell *map, int width, int height) {
       map = updateCell(map, i, neighbours);
       i++;
    }
+   
    i = 0;
    while (i < (height * width)) {
       map[i].lifeStatus = map[i].lifeStatNextGeneration;
