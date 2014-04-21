@@ -1,0 +1,54 @@
+Plan for The Game of Life in ncurses
+
+Info and rules:
+   ----------------------- FATAL POSSIBLE ERROR -----------------------
+   Make sure when looping over each cell, do not update the cell right
+   then, as this will affect what happens to the cells around it.
+   Instead, create a boulene variable for each cell, so that if the
+   cell must be changed in the first loop, it will be changed in a
+   second one. This will avoid this error.
+   --------------------------------------------------------------------
+   defining a cell and its neighbours:
+      @ = focus cell
+      # = neighbours
+      0 = other cells
+      00000
+      0@@@0
+      0@#@0
+      0@@@0
+      00000
+   alive cell = #
+   dead cell =   <- (space)
+   rules:
+      if a live cell has less than 2 live neighbours   --> dies
+      if a live cell has more than 3 live neighbours   --> dies
+      if a dead cell has exactly three live neighbours --> lives
+      if a live cell has 2 or 3 live neighbours        --> lives
+   Attributes of each cell:
+      boulene changeNextGen = FALSE by default
+      boulene lifeStatus = FALSE unless specified otherwise
+
+What the game needs to do:
+   - Generate a grid made up of cells, each with it's own attributes
+   - Loop over each cell in the grid and:
+      - Apply the rules to it to decide if it will live or not
+      - Change its boulene variable changeNextGen to whatever is decided
+   - Loop over each cell in the grid again and:
+      - Apply the change to changeNextGen to lifeStatus
+   - Render this grid by:
+      - Looping over it
+      - Setting each x,y to a particular cell's lifeStatus
+   - Make the seed to be an input by the user by:
+      - Getting coordinates through using getch()
+
+What functions will be needed:
+   - void updateDisplayWithGrid(grid); which will call:
+      - int isAlive(cell);
+   - void renderGrid(grid);
+   maybe:
+      - [workout how to pass coordinates] getInput();
+
+Plan:
+   - Work out how to print stuff using ncurses and:
+      - Print out a # that moves across the screen
+   - Print
