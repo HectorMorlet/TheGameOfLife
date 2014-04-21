@@ -42,7 +42,7 @@ What the game needs to do:
       - Getting coordinates through using getch()
 
 What functions will be needed:
-   - void updateDisplayWithGrid(grid); which will call:
+   - void iterateGeneration(); which will call:
       - int isAlive(cell);
    - void renderGrid(grid);
    maybe:
@@ -51,4 +51,6 @@ What functions will be needed:
 Plan:
    - Work out how to print stuff using ncurses and:
       - Print out a # that moves across the screen
-   - Print
+   - Make a map
+   - Render the map
+   - 

@@ -7,4 +7,7 @@
 //
 
 
-// Functions to be tested go here
+typedef struct {
+   int changeNextGeneration;
+   int lifeStatus;
+} cell;
