@@ -31,8 +31,10 @@
 #define LIVE_CELL_CHAR '#'
 #define DEAD_CELL_CHAR ' '
 
-#define DELAY_PER_GENERATION 500000
+#define DELAY_PER_GENERATION 300000
 #define ITERATIONS 1000
+#define INTRO_DELAY_PER_GENERATION 700000000
+#define INTRO_ITERATIONS 10
 
 #define NEIGHBOURS_PER_CELL 8
 #define MAX_DISTANCE_TO_SURROUNDING_CELL 1
@@ -41,10 +43,14 @@
 #define SECOND_NUMBER_OF_SURROUNDING_LIVE_CELLS 3
 #define NUMBER_OF_CELLS_FOR_DEAD_TO_LIVING 3
 
+#define INTRO_TEXT_WIDTH 54
+
 
 int *getInput();
 
 void iterateGeneration(cell *map, int width, int height);
+
+int *makeIntroMap(int *introArray);
 
 cell *createMap(cell *map, int width, int height, int *input);
 void renderMap(cell *map, int width, int height);
@@ -84,7 +90,7 @@ int main(int argc, char *argv[]) {
 
 
 // .oO0-------------------------------------------------------0Oo. //
-// ---------------- Iterating Through Generations ---------------- //
+// ------------------------ Getting input ------------------------ //
 // .oO0-------------------------------------------------------0Oo. //
 
 int *getInput() {
@@ -143,9 +149,25 @@ int *getInput() {
 // .oO0-------------------------------------------------------0Oo. //
 
 void iterateGeneration(cell *map, int width, int height) {
+   printf("Swagged here\n");
    usleep(DELAY_PER_GENERATION);
 
+   int *introInput = malloc(300); // sort this shit out
+   introInput = makeIntroMap(introInput);
+
+   cell *introMap = malloc(width * height * SIZE_OF_A_CELL);
+   introMap = createMap(introMap, width, height, introInput);
+
    int i = 0;
+   while (i < INTRO_ITERATIONS) {
+      renderMap(introMap, width, height);
+      introMap = updateMap(introMap, width, height);
+
+      i++;
+      usleep(INTRO_DELAY_PER_GENERATION);
+   }
+
+   i = 0;
    while (i < ITERATIONS) {
       renderMap(map, width, height);
       map = updateMap(map, width, height);
@@ -153,6 +175,36 @@ void iterateGeneration(cell *map, int width, int height) {
       i++;
       usleep(DELAY_PER_GENERATION);
    }
+}
+
+
+// .oO0-------------------------------------------------------0Oo. //
+// --------------------- Getting intro text ---------------------- //
+// .oO0-------------------------------------------------------0Oo. //
+
+int *makeIntroMap(int *introArray) {
+   char *introText = "######## ##     ## ########     ######      ###    ##     ## ########\n      ##    ##     ## ##          ##    ##    ## ##   ###   ### ##      \n      ##    ##     ## ##          ##         ##   ##  #### #### ##      \n      ##    ######### ######      ##   #### ##     ## ## ### ## ######  \n      ##    ##     ## ##          ##    ##  ######### ##     ## ##      \n      ##    ##     ## ##          ##    ##  ##     ## ##     ## ##      \n      ##    ##     ## ########     ######   ##     ## ##     ## ########\n    \n    #######  ########    ##       #### ######## ########\n   ##     ## ##          ##        ##  ##       ##      \n   ##     ## ##          ##        ##  ##       ##      \n   ##     ## ######      ##        ##  ######   ######  \n   ##     ## ##          ##        ##  ##       ##      \n   ##     ## ##          ##        ##  ##       ##      \n    #######  ##          ######## #### ##       ########\0";
+
+   char currChar = '_';
+   int i = 0;
+   int newLineCount = 0;
+   int arrayPos = 0;
+   while (currChar != '\0') {
+      currChar = introText[i];
+      if (currChar == '\n') {
+         newLineCount++;
+      } else if (currChar == '#') {
+         introArray[arrayPos] = i % INTRO_TEXT_WIDTH;
+         introArray[arrayPos + 1] = newLineCount;
+
+         arrayPos += 2;
+      }
+      i++;
+   }
+
+   introArray[i] = 1000000000;
+
+   return introArray;
 }
 
 
