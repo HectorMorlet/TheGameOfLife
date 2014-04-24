@@ -42,12 +42,15 @@ What the game needs to do:
       - Getting coordinates through using getch()
 
 What functions will be needed:
-   - void iterateGeneration(); which will call:\
-   - void renderGrid(grid);
-   - void updateGrid(grid);
-   - void createGrid(grid);
+   - void iterateGeneration(grid);
+   - cell *createMap(grid, input);
+   - void renderMap(grid);
+   - cell *updateMap(grid);
+   - int cellNeighbours(grid, iterations);
+   - cell *updateCell(grid, iterations, int neighbours);
    maybe:
-      - [workout how to pass coordinates] getInput();
+      - int *getInput();
+      - int *makeIntroMap(introGrid);
 
 Plan:
    - Work out how to print stuff using ncurses and:

@@ -30,10 +30,12 @@
 
 #define LIVE_CELL_CHAR '#'
 #define DEAD_CELL_CHAR ' '
+#define NEWLINE_CHARACTER '\n'
+#define END_STRING_CHARACTER '\0'
 
 #define DELAY_PER_GENERATION 600000
 #define ITERATIONS 1000
-#define INTRO_DELAY_PER_GENERATION 700000
+#define INTRO_DELAY_PER_GENERATION 400000
 #define INTRO_ITERATIONS 5
 
 #define NEIGHBOURS_PER_CELL 8
@@ -43,21 +45,18 @@
 #define SECOND_NUMBER_OF_SURROUNDING_LIVE_CELLS 3
 #define NUMBER_OF_CELLS_FOR_DEAD_TO_LIVING 3
 
+#define INTRO_TEXT "######## ##     ## ########     ######      ###    ##     ## ########\n   ##    ##     ## ##          ##    ##    ## ##   ###   ### ##      \n   ##    ##     ## ##          ##         ##   ##  #### #### ##      \n   ##    ######### ######      ##   #### ##     ## ## ### ## ######  \n   ##    ##     ## ##          ##    ##  ######### ##     ## ##      \n   ##    ##     ## ##          ##    ##  ##     ## ##     ## ##      \n   ##    ##     ## ########     ######   ##     ## ##     ## ########\n                                                                     \n #######  ########    ##       #### ######## ########                \n##     ## ##          ##        ##  ##       ##                      \n##     ## ##          ##        ##  ##       ##                      \n##     ## ######      ##        ##  ######   ######                  \n##     ## ##          ##        ##  ##       ##                      \n##     ## ##          ##        ##  ##       ##                      \n #######  ##          ######## #### ##       ########                \0"
 #define INTRO_TEXT_WIDTH 70
+#define INTRO_TEXT_HEIGHT 14
+#define LAST_COLOR 6
+#define POINTS_IN_INTRO_TEXT 364
 
 
 int *getInput();
 
 void iterateGeneration(cell *map, int width, int height);
 
-int *makeIntroMap(int *introArray);
-
-cell *createMap(cell *map, int width, int height, int *input);
 void renderMap(cell *map, int width, int height);
-
-cell *updateMap(cell *map, int width, int height);
-int cellNeighbours(cell *map, int cellPosition, int width);
-cell *updateCell(cell *map, int cellPosition, int neighbours);
 
 void initCurses();
 
@@ -149,11 +148,10 @@ int *getInput() {
 // .oO0-------------------------------------------------------0Oo. //
 
 void iterateGeneration(cell *map, int width, int height) {
-   printf("Swagged here\n");
-   usleep(DELAY_PER_GENERATION);
-
-   int *introInput = malloc(300); // sort this shit out
-   introInput = makeIntroMap(introInput);
+   int *introInput = malloc(POINTS_IN_INTRO_TEXT);
+   introInput = translateIntroText(introInput, 
+                                   INTRO_TEXT, 
+                                   INTRO_TEXT_WIDTH);
 
    cell *introMap = malloc(width * height * SIZE_OF_A_CELL);
    introMap = createMap(introMap, width, height, introInput);
@@ -164,10 +162,10 @@ void iterateGeneration(cell *map, int width, int height) {
       introMap = updateMap(introMap, width, height);
 
       if (i == 0) {
-         move(15, 0);
-         attron(COLOR_PAIR(6));
+         move(INTRO_TEXT_HEIGHT + BUFFER, 0);
+         attron(COLOR_PAIR(LAST_COLOR));
          addstr("Press any key to continue.");
-         attroff(COLOR_PAIR(6));
+         attroff(COLOR_PAIR(LAST_COLOR));
          getch();
       }
 
@@ -187,30 +185,28 @@ void iterateGeneration(cell *map, int width, int height) {
 
 
 // .oO0-------------------------------------------------------0Oo. //
-// --------------------- Getting intro text ---------------------- //
+// ------------------- Translating intro input ------------------- //
 // .oO0-------------------------------------------------------0Oo. //
 
-int *makeIntroMap(int *introArray) {
-   char *introText = "######## ##     ## ########     ######      ###    ##     ## ########\n   ##    ##     ## ##          ##    ##    ## ##   ###   ### ##      \n   ##    ##     ## ##          ##         ##   ##  #### #### ##      \n   ##    ######### ######      ##   #### ##     ## ## ### ## ######  \n   ##    ##     ## ##          ##    ##  ######### ##     ## ##      \n   ##    ##     ## ##          ##    ##  ##     ## ##     ## ##      \n   ##    ##     ## ########     ######   ##     ## ##     ## ########\n                                                                     \n #######  ########    ##       #### ######## ########                \n##     ## ##          ##        ##  ##       ##                      \n##     ## ##          ##        ##  ##       ##                      \n##     ## ######      ##        ##  ######   ######                  \n##     ## ##          ##        ##  ##       ##                      \n##     ## ##          ##        ##  ##       ##                      \n #######  ##          ######## #### ##       ########                \0";
-
-   char currChar = '_';
+int *translateIntroText(int *introArray, char *introText, int width) {
+   char currChar = LIVE_CELL_CHAR;
    int i = 0;
    int newLineCount = 0;
    int arrayPos = 0;
-   while (currChar != '\0') {
+   while (currChar != END_STRING_CHARACTER) {
       currChar = introText[i];
-      if (currChar == '\n') {
+      if (currChar == NEWLINE_CHARACTER) {
          newLineCount++;
-      } else if (currChar == '#') {
-         introArray[arrayPos] = i % INTRO_TEXT_WIDTH;
-         introArray[arrayPos + 1] = newLineCount;
+      } else if (currChar == LIVE_CELL_CHAR) {
+         introArray[arrayPos] = i % width;
+         introArray[arrayPos + BUFFER] = newLineCount;
 
-         arrayPos += 2;
+         arrayPos += NUMBERS_PER_COORD;
       }
       i++;
    }
 
-   introArray[i] = 1000000000;
+   introArray[i] = MAX_COORD_VALUE;
 
    return introArray;
 }
@@ -230,14 +226,17 @@ void renderMap(cell *map, int width, int height) {
 
          // Printing living cell if it is living, dead one if otherwise
          if (map[y * width + x].lifeStatus) {
-            if (map[y * width + x].color < 7) {
+            // Testing if the cell's color is bellow the max color
+            if (map[y * width + x].color <= 7) {
+               // Using cell's color
                attron(COLOR_PAIR(map[y * width + x].color));
                addch(LIVE_CELL_CHAR);
                attroff(COLOR_PAIR(map[y * width + x].color));
             } else {
-               attron(COLOR_PAIR(6));
+               // Using the max color
+               attron(COLOR_PAIR(7));
                addch(LIVE_CELL_CHAR);
-               attroff(COLOR_PAIR(6));
+               attroff(COLOR_PAIR(7));
             }
          } else {
             addch(DEAD_CELL_CHAR);
@@ -306,20 +305,27 @@ cell *updateMap(cell *map, int width, int height) {
       i++;
    }
 
-   // Setting all the cells' lifestatuses to what they should be
-   // This is to avoid the error of changing one status in the function
-   // above, which will affect the status of other cells, when they
-   // should all use the same data to change.
    i = 0;
    while (i < (height * width)) {
+      // Testing how to change the color
       if (map[i].lifeStatNextGeneration == TRUE &&
          map[i].lifeStatus == FALSE) {
-         map[i].color = 1;
+         // If the cell is becoming alive, set to first color
+         map[i].color = TRUE;
       } else if (map[i].lifeStatNextGeneration == TRUE) {
+         // If the cell was alive and is still
+         // alive, add one to their color
          map[i].color++;
       } else if (map[i].lifeStatNextGeneration == FALSE) {
-         map[i].color = 0;
+         // If the cell is going to be dead, 
+         // set their color to the dead color
+         map[i].color = FALSE;
       }
+
+      // Setting all the cells' lifestatuses to what they should be
+      // This is to avoid the error of changing one status in the function
+      // above, which will affect the status of other cells, when they
+      // should all use the same data to change.
       map[i].lifeStatus = map[i].lifeStatNextGeneration;
       i++;
    }
@@ -387,10 +393,10 @@ void initCurses() {
    start_color();
    init_pair(0, COLOR_BLACK, COLOR_BLACK);
    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-   init_pair(1, COLOR_YELLOW, COLOR_BLACK);
-   init_pair(2, COLOR_GREEN, COLOR_BLACK);
-   init_pair(3, COLOR_CYAN, COLOR_BLACK);
-   init_pair(4, COLOR_BLUE, COLOR_BLACK);
-   init_pair(5, COLOR_RED, COLOR_BLACK);
-   init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+   init_pair(2, COLOR_YELLOW, COLOR_BLACK);
+   init_pair(3, COLOR_GREEN, COLOR_BLACK);
+   init_pair(4, COLOR_CYAN, COLOR_BLACK);
+   init_pair(5, COLOR_BLUE, COLOR_BLACK);
+   init_pair(6, COLOR_RED, COLOR_BLACK);
+   init_pair(7, COLOR_MAGENTA, COLOR_BLACK);
 }
