@@ -163,6 +163,14 @@ void iterateGeneration(cell *map, int width, int height) {
       renderMap(introMap, width, height);
       introMap = updateMap(introMap, width, height);
 
+      if (i == 0) {
+         move(15, 0);
+         attron(COLOR_PAIR(6));
+         addstr("Press any key to continue.");
+         attroff(COLOR_PAIR(6));
+         getch();
+      }
+
       i++;
       usleep(INTRO_DELAY_PER_GENERATION);
    }
@@ -222,14 +230,19 @@ void renderMap(cell *map, int width, int height) {
 
          // Printing living cell if it is living, dead one if otherwise
          if (map[y * width + x].lifeStatus) {
-            addch(LIVE_CELL_CHAR);
+            if (map[y * width + x].color < 7) {
+               attron(COLOR_PAIR(map[y * width + x].color));
+               addch(LIVE_CELL_CHAR);
+               attroff(COLOR_PAIR(map[y * width + x].color));
+            } else {
+               attron(COLOR_PAIR(6));
+               addch(LIVE_CELL_CHAR);
+               attroff(COLOR_PAIR(6));
+            }
          } else {
-            attron(COLOR_PAIR(map[y * width + x].color));
             addch(DEAD_CELL_CHAR);
-            attroff(COLOR_PAIR(map[y * width + x].color));
          }
 
-         move(0, 0);
          x++;
       }
       y++;
@@ -373,11 +386,11 @@ void initCurses() {
 
    start_color();
    init_pair(0, COLOR_BLACK, COLOR_BLACK);
-   init_pair(1, COLOR_WHITE, COLOR_WHITE);
-   init_pair(1, COLOR_CYAN, COLOR_WHITE);
-   init_pair(2, COLOR_YELLOW, COLOR_WHITE);
-   init_pair(3, COLOR_MAGENTA, COLOR_WHITE);
-   init_pair(4, COLOR_RED, COLOR_WHITE);
-   init_pair(5, COLOR_GREEN, COLOR_WHITE);
-   init_pair(6, COLOR_BLUE, COLOR_WHITE);
+   init_pair(1, COLOR_WHITE, COLOR_BLACK);
+   init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+   init_pair(2, COLOR_GREEN, COLOR_BLACK);
+   init_pair(3, COLOR_CYAN, COLOR_BLACK);
+   init_pair(4, COLOR_BLUE, COLOR_BLACK);
+   init_pair(5, COLOR_RED, COLOR_BLACK);
+   init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
 }
