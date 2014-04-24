@@ -21,7 +21,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define SIZE_OF_A_CELL 10
+#define SIZE_OF_A_CELL 15
 #define SIZE_OF_AN_INT 4
 #define MAX_INPUT_COORDS 2000
 #define BUFFER 1
@@ -31,10 +31,10 @@
 #define LIVE_CELL_CHAR '#'
 #define DEAD_CELL_CHAR ' '
 
-#define DELAY_PER_GENERATION 300000
+#define DELAY_PER_GENERATION 600000
 #define ITERATIONS 1000
-#define INTRO_DELAY_PER_GENERATION 700000000
-#define INTRO_ITERATIONS 10
+#define INTRO_DELAY_PER_GENERATION 700000
+#define INTRO_ITERATIONS 5
 
 #define NEIGHBOURS_PER_CELL 8
 #define MAX_DISTANCE_TO_SURROUNDING_CELL 1
@@ -43,7 +43,7 @@
 #define SECOND_NUMBER_OF_SURROUNDING_LIVE_CELLS 3
 #define NUMBER_OF_CELLS_FOR_DEAD_TO_LIVING 3
 
-#define INTRO_TEXT_WIDTH 54
+#define INTRO_TEXT_WIDTH 70
 
 
 int *getInput();
@@ -183,7 +183,7 @@ void iterateGeneration(cell *map, int width, int height) {
 // .oO0-------------------------------------------------------0Oo. //
 
 int *makeIntroMap(int *introArray) {
-   char *introText = "######## ##     ## ########     ######      ###    ##     ## ########\n      ##    ##     ## ##          ##    ##    ## ##   ###   ### ##      \n      ##    ##     ## ##          ##         ##   ##  #### #### ##      \n      ##    ######### ######      ##   #### ##     ## ## ### ## ######  \n      ##    ##     ## ##          ##    ##  ######### ##     ## ##      \n      ##    ##     ## ##          ##    ##  ##     ## ##     ## ##      \n      ##    ##     ## ########     ######   ##     ## ##     ## ########\n    \n    #######  ########    ##       #### ######## ########\n   ##     ## ##          ##        ##  ##       ##      \n   ##     ## ##          ##        ##  ##       ##      \n   ##     ## ######      ##        ##  ######   ######  \n   ##     ## ##          ##        ##  ##       ##      \n   ##     ## ##          ##        ##  ##       ##      \n    #######  ##          ######## #### ##       ########\0";
+   char *introText = "######## ##     ## ########     ######      ###    ##     ## ########\n   ##    ##     ## ##          ##    ##    ## ##   ###   ### ##      \n   ##    ##     ## ##          ##         ##   ##  #### #### ##      \n   ##    ######### ######      ##   #### ##     ## ## ### ## ######  \n   ##    ##     ## ##          ##    ##  ######### ##     ## ##      \n   ##    ##     ## ##          ##    ##  ##     ## ##     ## ##      \n   ##    ##     ## ########     ######   ##     ## ##     ## ########\n                                                                     \n #######  ########    ##       #### ######## ########                \n##     ## ##          ##        ##  ##       ##                      \n##     ## ##          ##        ##  ##       ##                      \n##     ## ######      ##        ##  ######   ######                  \n##     ## ##          ##        ##  ##       ##                      \n##     ## ##          ##        ##  ##       ##                      \n #######  ##          ######## #### ##       ########                \0";
 
    char currChar = '_';
    int i = 0;
@@ -224,8 +224,12 @@ void renderMap(cell *map, int width, int height) {
          if (map[y * width + x].lifeStatus) {
             addch(LIVE_CELL_CHAR);
          } else {
+            attron(COLOR_PAIR(map[y * width + x].color));
             addch(DEAD_CELL_CHAR);
+            attroff(COLOR_PAIR(map[y * width + x].color));
          }
+
+         move(0, 0);
          x++;
       }
       y++;
@@ -241,11 +245,12 @@ cell *createMap(cell *map, int width, int height, int *input) {
       // Setting the default status of the cell
       map[i].lifeStatNextGeneration = FALSE;
       map[i].lifeStatus = FALSE;
+      map[i].color = 0;
 
       // The following condition (the second part of it) is completely
       // derogatory (the numbers don't mean anything).
       // Fiddle around with it for pretty patterns!
-      if (input[0] == MAX_COORD_VALUE && i*3725922/3%5 == 0) {
+      if (input[0] == MAX_COORD_VALUE && i*3827022/5%3 == 0) {
          map[i].lifeStatus = TRUE;
       } else {
          // Getting the x and y values of the cell
@@ -294,6 +299,14 @@ cell *updateMap(cell *map, int width, int height) {
    // should all use the same data to change.
    i = 0;
    while (i < (height * width)) {
+      if (map[i].lifeStatNextGeneration == TRUE &&
+         map[i].lifeStatus == FALSE) {
+         map[i].color = 1;
+      } else if (map[i].lifeStatNextGeneration == TRUE) {
+         map[i].color++;
+      } else if (map[i].lifeStatNextGeneration == FALSE) {
+         map[i].color = 0;
+      }
       map[i].lifeStatus = map[i].lifeStatNextGeneration;
       i++;
    }
@@ -357,4 +370,14 @@ void initCurses() {
    initscr();
    cbreak();
    noecho();
+
+   start_color();
+   init_pair(0, COLOR_BLACK, COLOR_BLACK);
+   init_pair(1, COLOR_WHITE, COLOR_WHITE);
+   init_pair(1, COLOR_CYAN, COLOR_WHITE);
+   init_pair(2, COLOR_YELLOW, COLOR_WHITE);
+   init_pair(3, COLOR_MAGENTA, COLOR_WHITE);
+   init_pair(4, COLOR_RED, COLOR_WHITE);
+   init_pair(5, COLOR_GREEN, COLOR_WHITE);
+   init_pair(6, COLOR_BLUE, COLOR_WHITE);
 }

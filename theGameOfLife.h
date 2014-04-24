@@ -10,4 +10,5 @@
 typedef struct {
    int lifeStatNextGeneration;
    int lifeStatus;
+   int color;
 } cell;

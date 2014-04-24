@@ -9,8 +9,8 @@ Info and rules:
    second one. This will avoid this error.
    --------------------------------------------------------------------
    defining a cell and its neighbours:
-      @ = focus cell
-      # = neighbours
+      # = focus cell
+      @ = neighbours
       0 = other cells
       00000
       0@@@0
@@ -57,3 +57,5 @@ Plan:
    - Make a predetermined set of alive cells iterate over generations
    - Get inputted coordinates
    - Set the inputted coordinates to alive on the map
+   - Make a title screen that disolves into the game of life
+   - Make it so as the time a cell has been around changes, so does its color
