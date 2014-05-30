@@ -78,6 +78,8 @@
 #define INTRO_TEXT_HEIGHT 14
 #define LAST_COLOR 6
 #define POINTS_IN_INTRO_TEXT 364
+#define MAX_INPUT_WIDTH 500
+#define MAX_INPUT_HEIGHT 200
 
 
 // .oO0-------------------------------------------------------0Oo. //
@@ -85,7 +87,7 @@
 // .oO0-------------------------------------------------------0Oo. //
 
 int main(int argc, char *argv[]) {
-   int *input = getInput(1000, 1000);
+   int *input = getInput();
 
    initCurses();
 
@@ -116,7 +118,7 @@ int main(int argc, char *argv[]) {
 // ------------------------ Getting input ------------------------ //
 // .oO0-------------------------------------------------------0Oo. //
 
-int *getInput(int width, int height) {
+int *getInput() {
    int *coords = NULL;
 
    // Determining whether to use default or input
@@ -140,14 +142,14 @@ int *getInput(int width, int height) {
          // Getting and setting x
          printf(PROMPT_X);
          scanf("%d", &coord);
-         assert(coord < width + BUFFER);
+         assert(coord < MAX_INPUT_WIDTH);
          assert(coord > 0);
          coords[i] = coord;
 
          // Getting and setting y
          printf(PROMPT_Y);
          scanf("%d", &coord);
-         assert(coord < height + BUFFER);
+         assert(coord < MAX_INPUT_HEIGHT);
          assert(coord > 0);
          coords[i + 1] = coord;
 
