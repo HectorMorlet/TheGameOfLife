@@ -21,17 +21,30 @@
 #define TRUE 1
 #define FALSE 0
 
-#define SIZE_OF_A_CELL 15
-#define SIZE_OF_AN_INT 4
+#define YES 'y'
+#define NO 'n'
+
 #define MAX_INPUT_COORDS 2000
 #define BUFFER 1
-#define MAX_COORD_VALUE 1000000000
+#define TERMINATING_COORD -1
 #define NUMBERS_PER_COORD 2
+
+#define PROMPT_COORDS (\
+   "Would you like to enter your own coordinates? (y/n): ")
+#define PROMPT_X "Enter x: "
+#define PROMPT_Y "Enter y: "
+#define PROMPT_MORE_COORDS (\
+   "Do you want to enter another point? (y/n): ")
+
+#define INSTRUCTION_XY (\
+   "Enter an x and y to make a point at their coordinates. ")
+#define INSTRUCTION_MAX_INPUT ("The maximum amount of input coordinate"\
+   " sets is 1000.\n")
+
+#define KEY_CONTINUE "Press any key to continue."
 
 #define LIVE_CELL_CHAR '#'
 #define DEAD_CELL_CHAR ' '
-#define NEWLINE_CHARACTER '\n'
-#define END_STRING_CHARACTER '\0'
 
 #define DELAY_PER_GENERATION 600000
 #define ITERATIONS 1000
@@ -45,8 +58,23 @@
 #define SECOND_NUMBER_OF_SURROUNDING_LIVE_CELLS 3
 #define NUMBER_OF_CELLS_FOR_DEAD_TO_LIVING 3
 
-#define INTRO_TEXT "######## ##     ## ########     ######      ###    ##     ## ########\n   ##    ##     ## ##          ##    ##    ## ##   ###   ### ##      \n   ##    ##     ## ##          ##         ##   ##  #### #### ##      \n   ##    ######### ######      ##   #### ##     ## ## ### ## ######  \n   ##    ##     ## ##          ##    ##  ######### ##     ## ##      \n   ##    ##     ## ##          ##    ##  ##     ## ##     ## ##      \n   ##    ##     ## ########     ######   ##     ## ##     ## ########\n                                                                     \n #######  ########    ##       #### ######## ########                \n##     ## ##          ##        ##  ##       ##                      \n##     ## ##          ##        ##  ##       ##                      \n##     ## ######      ##        ##  ######   ######                  \n##     ## ##          ##        ##  ##       ##                      \n##     ## ##          ##        ##  ##       ##                      \n #######  ##          ######## #### ##       ########                \0"
-#define INTRO_TEXT_WIDTH 70
+#define INTRO_TEXT (\
+"######## ##     ## ########    ######      ###    ##     ## #######\n"\
+"   ##    ##     ## ##         ##    ##    ## ##   ###   ### ##     \n"\
+"   ##    ##     ## ##         ##         ##   ##  #### #### ##     \n"\
+"   ##    ######### ######     ##   #### ##     ## ## ### ## ###### \n"\
+"   ##    ##     ## ##         ##    ##  ######### ##     ## ##     \n"\
+"   ##    ##     ## ##         ##    ##  ##     ## ##     ## ##     \n"\
+"   ##    ##     ## ########    ######   ##     ## ##     ## #######\n"\
+"                                                                   \n"\
+" #######  ########    ##       #### ######## ########              \n"\
+"##     ## ##          ##        ##  ##       ##                    \n"\
+"##     ## ##          ##        ##  ##       ##                    \n"\
+"##     ## ######      ##        ##  ######   ######                \n"\
+"##     ## ##          ##        ##  ##       ##                    \n"\
+"##     ## ##          ##        ##  ##       ##                    \n"\
+" #######  ##          ######## #### ##       ########              \0")
+#define INTRO_TEXT_WIDTH 68
 #define INTRO_TEXT_HEIGHT 14
 #define LAST_COLOR 6
 #define POINTS_IN_INTRO_TEXT 364
@@ -57,7 +85,7 @@
 // .oO0-------------------------------------------------------0Oo. //
 
 int main(int argc, char *argv[]) {
-   int *input = getInput();
+   int *input = getInput(1000, 1000);
 
    initCurses();
 
@@ -67,12 +95,17 @@ int main(int argc, char *argv[]) {
    getmaxyx(stdscr, height, width);
 
    // Creating map
-   cell *map = malloc(width * height * SIZE_OF_A_CELL);
+   cell *map = malloc(width * height * sizeof(cell));
    map = createMap(map, width, height, input);
+
+   // Map has been created - no more use for input
+   free(input);
 
    // Iterating over the generations and rendering
    iterateGeneration(map, width, height);
 
+   // All done
+   free(map);
    endwin();
 
    return EXIT_SUCCESS;
@@ -83,51 +116,53 @@ int main(int argc, char *argv[]) {
 // ------------------------ Getting input ------------------------ //
 // .oO0-------------------------------------------------------0Oo. //
 
-int *getInput() {
+int *getInput(int width, int height) {
    int *coords = NULL;
 
    // Determining whether to use default or input
-   char choiceChar = 'n';
-   printf("Would you like to enter your own coordinates? (y/n): ");
+   char choiceChar = NO;
+   printf(PROMPT_COORDS);
    scanf(" %c", &choiceChar);
-   if (choiceChar == 'y') {
+   assert(choiceChar == YES || choiceChar == NO);
+   if (choiceChar == YES) {
       // Allocating memory
-      coords = malloc(MAX_INPUT_COORDS * SIZE_OF_AN_INT + BUFFER);
+      coords = malloc(MAX_INPUT_COORDS * sizeof(int) + BUFFER); // THIS NEEDS TO BE FREED
 
       // Instructions
-      printf("Enter an x and y to make a point at their coordinates. ");
-      printf("The maximum amount of input coordinate sets is %d.\n", 
-         MAX_INPUT_COORDS / NUMBERS_PER_COORD);
+      printf(INSTRUCTION_XY);
+      printf(INSTRUCTION_MAX_INPUT);
 
       // Getting the input
       int coord = 0;
-      char exitChar = 'y';
+      char exitChar = YES;
       int i = 0;
-      while (exitChar == 'y' && i < MAX_INPUT_COORDS) {
+      while (exitChar == YES && i < MAX_INPUT_COORDS) {
          // Getting and setting x
-         printf("Enter x: ");
+         printf(PROMPT_X);
          scanf("%d", &coord);
-         assert(coord < MAX_COORD_VALUE);
+         assert(coord < width + BUFFER);
+         assert(coord > 0);
          coords[i] = coord;
 
          // Getting and setting y
-         printf("Enter y: ");
+         printf(PROMPT_Y);
          scanf("%d", &coord);
-         assert(coord < MAX_COORD_VALUE);
+         assert(coord < height + BUFFER);
+         assert(coord > 0);
          coords[i + 1] = coord;
 
          // Determining whether to exit or not
-         printf("Do you want to enter another point? (y/n): ");
+         printf(PROMPT_MORE_COORDS);
          scanf(" %c", &exitChar);
          i += NUMBERS_PER_COORD;
       }
 
       // Setting terminating value
-      coords[i] = MAX_COORD_VALUE;
+      coords[i] = TERMINATING_COORD;
    } else {
       // Making no-go coord array
-      coords = malloc(SIZE_OF_AN_INT);
-      coords[0] = MAX_COORD_VALUE;
+      coords = malloc(sizeof(int)); // SAME AS ABOVE
+      coords[0] = TERMINATING_COORD;
    }
 
    return coords;
@@ -143,33 +178,46 @@ void iterateGeneration(cell *map, int width, int height) {
    introInput = translateIntroText(introInput, 
                                    INTRO_TEXT, 
                                    INTRO_TEXT_WIDTH);
-
-   cell *introMap = malloc(width * height * SIZE_OF_A_CELL);
+   // Creating the map used in the intro
+   cell *introMap = malloc(width * height * sizeof(cell));
    introMap = createMap(introMap, width, height, introInput);
+   // Map has been created - no more use for introInput
+   free(introInput);
 
+   // Iterating over the generations of the intro map
    int i = 0;
    while (i < INTRO_ITERATIONS) {
+      // Rendering and updating it
       renderMap(introMap, width, height);
       introMap = updateMap(introMap, width, height);
 
+      // Drawing the "Press any key to continue." text
       if (i == 0) {
          move(INTRO_TEXT_HEIGHT + BUFFER, 0);
          attron(COLOR_PAIR(LAST_COLOR));
-         addstr("Press any key to continue.");
+         addstr(KEY_CONTINUE);
          attroff(COLOR_PAIR(LAST_COLOR));
          getch();
       }
 
       i++;
+      // Delay untill the next generation (so people can see)
       usleep(INTRO_DELAY_PER_GENERATION);
    }
 
+   // Intro has finished - no more use for introMap
+   free(introMap);
+
+   // Iterating over the main map
    i = 0;
    while (i < ITERATIONS) {
+      // Rendering
       renderMap(map, width, height);
+      // Updating based on previous iteration
       map = updateMap(map, width, height);
 
       i++;
+      // Delay untill the next generation (so people can see)
       usleep(DELAY_PER_GENERATION);
    }
 }
@@ -184,20 +232,25 @@ int *translateIntroText(int *introArray, char *introText, int width) {
    int i = 0;
    int newLineCount = 0;
    int arrayPos = 0;
-   while (currChar != END_STRING_CHARACTER) {
+   // Iterating over every char in the string
+   while (currChar != '\0') {
       currChar = introText[i];
-      if (currChar == NEWLINE_CHARACTER) {
+      if (currChar == '\n') {
+         // Changing the y of the next coords
          newLineCount++;
       } else if (currChar == LIVE_CELL_CHAR) {
+         // Assigning an x and y to each coord
          introArray[arrayPos] = i % width;
          introArray[arrayPos + BUFFER] = newLineCount;
 
+         // Changing position in new list of coords
          arrayPos += NUMBERS_PER_COORD;
       }
       i++;
    }
 
-   introArray[i] = MAX_COORD_VALUE;
+   // Terminating map
+   introArray[i] = TERMINATING_COORD;
 
    return introArray;
 }
@@ -253,7 +306,7 @@ cell *createMap(cell *map, int width, int height, int *input) {
       // The following condition (the second part of it) is completely
       // derogatory (the numbers don't mean anything).
       // Fiddle around with it for pretty patterns!
-      if (input[0] == MAX_COORD_VALUE && i*3827022/5%3 == 0) {
+      if (input[0] == TERMINATING_COORD && i*3827022/5%3 == 0) {
          map[i].lifeStatus = TRUE;
       } else {
          // Getting the x and y values of the cell
@@ -263,7 +316,7 @@ cell *createMap(cell *map, int width, int height, int *input) {
          // Looping over each coord
          int inputX = 0;
          int j = 0;
-         while (inputX != MAX_COORD_VALUE) {
+         while (inputX != TERMINATING_COORD) {
             inputX = input[j];
 
             // Comparing to the cell's x and y
@@ -314,9 +367,9 @@ cell *updateMap(cell *map, int width, int height) {
       }
 
       // Setting all the cells' lifestatuses to what they should be
-      // This is to avoid the error of changing one status in the function
-      // above, which will affect the status of other cells, when they
-      // should all use the same data to change.
+      // This is to avoid the error of changing one status in the
+      // function above, which will affect the status of other cells,
+      // when they should all use the same data to change.
       map[i].lifeStatus = map[i].lifeStatNextGeneration;
       i++;
    }
@@ -381,6 +434,7 @@ void initCurses() {
    cbreak();
    noecho();
 
+   // Assigning a color and background color to each iteration number
    start_color();
    init_pair(0, COLOR_BLACK, COLOR_BLACK);
    init_pair(6, COLOR_WHITE, COLOR_BLACK);
