@@ -24,6 +24,8 @@
 #define YES 'y'
 #define NO 'n'
 
+#define DEROGATORY_EQUATION i*3827022/5%3
+
 #define MAX_INPUT_COORDS 2000
 #define BUFFER 1
 #define TERMINATING_COORD -1
@@ -128,7 +130,7 @@ int *getInput() {
    assert(choiceChar == YES || choiceChar == NO);
    if (choiceChar == YES) {
       // Allocating memory
-      coords = malloc(MAX_INPUT_COORDS * sizeof(int) + BUFFER); // THIS NEEDS TO BE FREED
+      coords = malloc(MAX_INPUT_COORDS * sizeof(int) + BUFFER);
 
       // Instructions
       printf(INSTRUCTION_XY);
@@ -163,7 +165,7 @@ int *getInput() {
       coords[i] = TERMINATING_COORD;
    } else {
       // Making no-go coord array
-      coords = malloc(sizeof(int)); // SAME AS ABOVE
+      coords = malloc(sizeof(int));
       coords[0] = TERMINATING_COORD;
    }
 
@@ -308,7 +310,7 @@ cell *createMap(cell *map, int width, int height, int *input) {
       // The following condition (the second part of it) is completely
       // derogatory (the numbers don't mean anything).
       // Fiddle around with it for pretty patterns!
-      if (input[0] == TERMINATING_COORD && i*3827022/5%3 == 0) {
+      if (input[0] == TERMINATING_COORD && DEROGATORY_EQUATION == 0) {
          map[i].lifeStatus = TRUE;
       } else {
          // Getting the x and y values of the cell
