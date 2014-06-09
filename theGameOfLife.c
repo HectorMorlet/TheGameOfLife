@@ -24,7 +24,7 @@
 #define YES 'y'
 #define NO 'n'
 
-#define DEROGATORY_EQUATION i*3827022/5%3
+#define ARBITRARY_EQUATION i*3827022/5%3
 
 #define MAX_INPUT_COORDS 2000
 #define BUFFER 1
@@ -308,9 +308,9 @@ cell *createMap(cell *map, int width, int height, int *input) {
       map[i].color = 0;
 
       // The following condition (the second part of it) is completely
-      // derogatory (the numbers don't mean anything).
+      // arbitrary (the numbers don't mean anything).
       // Fiddle around with it for pretty patterns!
-      if (input[0] == TERMINATING_COORD && DEROGATORY_EQUATION == 0) {
+      if (input[0] == TERMINATING_COORD && ARBITRARY_EQUATION == 0) {
          map[i].lifeStatus = TRUE;
       } else {
          // Getting the x and y values of the cell
